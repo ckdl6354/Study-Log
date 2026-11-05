@@ -1,32 +1,29 @@
-React 오류 해결 기록 (Troubleshooting)
-1. Student.jsx - Cannot read properties of undefined (reading 'name')
-🔴 문제 상황
-bash
-Student.jsx:4 Uncaught TypeError:
-Cannot read properties of undefined (reading 'name')
+# 🛠️ React Troubleshooting
 
+React 프로젝트를 진행하면서 발생한 오류와 원인, 해결 방법을 정리한 기록입니다.
 
-Student 컴포넌트의 4번째 줄에서 undefined인 객체의 name 속성에 접근하면서 오류가 발생했다.
+---
 
-🔍 원인
+## 1. Student.jsx - undefined (reading 'name')
 
-객체가 전달되지 않았거나, props로 전달받은 데이터의 구조가 예상과 다를 때 발생하는 오류이다.
+### ❌ Error
 
-예를 들어 다음과 같은 코드에서 문제가 발생할 수 있다.
+```bash
+Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+```
 
-jsx
-function Student(props) {
-  return <h1>{props.student.name}</h1>;
-}
+### 🔍 원인
 
+Student 컴포넌트에서 객체의 `name` 속성에 접근했지만, 해당 객체가 `undefined`인 상태였다.
 
-props.student가 undefined라면 .name에 접근할 수 없다.
+부모 컴포넌트에서 props를 전달하지 않았거나, 전달받은 데이터의 이름 또는 구조가 일치하지 않을 때 발생할 수 있다.
 
-✅ 해결 방법
+### ✅ 해결 방법
 
-방법 1. 부모 컴포넌트에서 props 전달 확인
+부모 컴포넌트에서 올바르게 데이터를 전달했는지 확인한다.
 
-jsx
+```jsx
+// App.jsx
 function App() {
   const student = {
     name: "홍길동"
@@ -34,145 +31,163 @@ function App() {
 
   return <Student student={student} />;
 }
+```
 
-
-방법 2. Optional Chaining 사용
-
-jsx
-function Student(props) {
-  return <h1>{props.student?.name}</h1>;
+```jsx
+// Student.jsx
+function Student({ student }) {
+  return <h1>{student?.name}</h1>;
 }
 
+export default Student;
+```
 
-데이터가 전달되지 않은 경우에도 오류가 발생하지 않도록 처리할 수 있다.
+`Optional Chaining (?.)`을 사용하면 객체가 `undefined` 또는 `null`인 경우에도 오류 없이 처리할 수 있다.
 
-2. App3.jsx - does not provide an export named 'default'
-🔴 문제 상황
-bash
+---
+
+## 2. App3.jsx - default export 오류
+
+### ❌ Error
+
+```bash
 Uncaught SyntaxError:
 The requested module '/src/App3.jsx'
 does not provide an export named 'default'
+```
 
+### 🔍 원인
 
-main.jsx에서 App3.jsx를 default import 방식으로 불러왔지만, 해당 파일에서 default export를 제공하지 않아 발생한 오류이다.
+`main.jsx`에서 `App3`를 default import 방식으로 불러왔지만, `App3.jsx`에서 default export를 하지 않아 발생한 오류이다.
 
-🔍 원인
+### 문제 코드
 
-main.jsx
-
-jsx
+```jsx
+// main.jsx
 import App3 from './App3.jsx';
+```
 
-
-위와 같이 작성했다면 App3.jsx 파일에서 반드시 default export가 있어야 한다.
-
-하지만 다음과 같이 작성되어 있다면 오류가 발생한다.
-
-jsx
+```jsx
+// App3.jsx
 export function App3() {
   return <h1>App3</h1>;
 }
+```
 
-✅ 해결 방법
+### ✅ 해결 방법
 
-방법 1. default export 사용
+**방법 1. Default Export 사용**
 
-jsx
+```jsx
+// App3.jsx
 function App3() {
   return <h1>App3</h1>;
 }
 
 export default App3;
+```
 
+**방법 2. Named Export 사용**
 
-방법 2. Named Export 방식 사용
-
-jsx
+```jsx
+// App3.jsx
 export function App3() {
   return <h1>App3</h1>;
 }
+```
 
-
-이 경우 import도 다음과 같이 수정해야 한다.
-
-jsx
+```jsx
+// main.jsx
 import { App3 } from './App3.jsx';
+```
 
-💡 핵심 정리
-export default → 중괄호 없이 import
-export → 중괄호를 사용하여 import
-3. Corse.jsx - Cannot read properties of undefined (reading 'map')
-🔴 문제 상황
-bash
-Corse.jsx:5 Uncaught TypeError:
-Cannot read properties of undefined (reading 'map')
+### 💡 핵심 정리
 
+| 구분 | Export | Import |
+|---|---|---|
+| Default Export | `export default App3` | `import App3 from './App3'` |
+| Named Export | `export { App3 }` | `import { App3 } from './App3'` |
 
-Corse.jsx의 5번째 줄에서 map() 메서드를 호출했지만, 호출 대상이 undefined여서 발생한 오류이다.
+Export 방식과 Import 방식은 반드시 일치해야 한다.
 
-🔍 원인
+---
 
-map()은 배열에서 사용할 수 있는 메서드이다.
+## 3. Corse.jsx - undefined (reading 'map')
 
-따라서 배열이 아닌 undefined에 map()을 호출하면 오류가 발생한다.
+### ❌ Error
 
-예를 들어 다음과 같은 코드에서 문제가 발생할 수 있다.
+```bash
+Uncaught TypeError: Cannot read properties of undefined (reading 'map')
+```
 
-jsx
+### 🔍 원인
+
+`map()` 메서드는 배열에서 사용하는 메서드이다.
+하지만 Corse 컴포넌트에서 `undefined` 상태인 데이터에 `map()`을 호출하여 오류가 발생했다.
+
+비동기 통신(API 요청 등)으로 데이터를 가져오기 전 초기값이 배열이 아니거나, 부모 컴포넌트에서 props 배열을 올바르게 전달하지 않았을 때 자주 발생한다.
+
+### 문제 코드
+
+```jsx
+// Corse.jsx
 function Corse(props) {
   return (
-    <div>
+    <ul>
       {props.courses.map((course) => (
-        <p>{course}</p>
+        <li key={course.id}>{course.title}</li>
       ))}
-    </div>
+    </ul>
   );
 }
+```
 
+### ✅ 해결 방법
 
-부모 컴포넌트에서 courses 배열을 전달하지 않았다면 오류가 발생한다.
+**방법 1. Optional Chaining (?.) 사용**
 
-✅ 해결 방법
+데이터가 로딩 중이거나 아직 비어있을 때(undefined) 에러를 뿜지 않고 렌더링을 안전하게 건너뛰도록 처리한다.
 
-방법 1. 부모 컴포넌트에서 배열 전달 확인
-
-jsx
-function App3() {
-  const courses = ["HTML", "CSS", "JavaScript", "React"];
-
-  return <Corse courses={courses} />;
+```jsx
+function Corse(props) {
+  return (
+    <ul>
+      {props.courses?.map((course) => (
+        <li key={course.id}>{course.title}</li>
+      ))}
+    </ul>
+  );
 }
+```
 
+**방법 2. 단락 평가 (Short-circuit Evaluation) 활용**
 
-방법 2. 기본값 설정
+`props.courses`가 존재할 때만 뒤의 `map()`이 실행되도록 만든다.
 
-jsx
+```jsx
+function Corse(props) {
+  return (
+    <ul>
+      {props.courses && props.courses.map((course) => (
+        <li key={course.id}>{course.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**방법 3. 기본값(Default Parameter) 지정**
+
+구조 분해 할당을 사용해 props가 넘어오지 않거나 비어있을 때 빈 배열(`[]`)이 기본값으로 들어가도록 설정한다.
+
+```jsx
 function Corse({ courses = [] }) {
   return (
-    <div>
-      {courses.map((course, index) => (
-        <p key={index}>{course}</p>
+    <ul>
+      {courses.map((course) => (
+        <li key={course.id}>{course.title}</li>
       ))}
-    </div>
+    </ul>
   );
 }
-
-
-배열이 전달되지 않더라도 기본값인 빈 배열을 사용하기 때문에 오류가 발생하지 않는다.
-
-4. 전체 오류 정리
-파일	오류 내용	해결 방법
-Student.jsx	undefined 객체의 name 접근	props 전달 확인 및 Optional Chaining
-App3.jsx	default export 누락	export와 import 방식 일치시키기
-Corse.jsx	undefined에 map() 호출	배열 전달 확인 및 기본값 설정
-5. 배운 점 (느낀 점)
-
-이번 오류들을 해결하면서 React에서 컴포넌트 간 데이터 전달과 모듈 내보내기 및 가져오기 방식이 중요하다는 것을 알게 되었다.
-
-특히 다음 세 가지를 기억해야겠다.
-
-Props 확인: 자식 컴포넌트에서 데이터를 사용할 때 부모 컴포넌트가 올바르게 전달했는지 확인하기.
-Export / Import 확인: default export와 named export의 문법 차이를 이해하고 일치시키기.
-배열 데이터 확인: map()을 사용하기 전에 해당 데이터가 실제 배열인지 확인하기.
-
-앞으로 React 개발 중 오류가 발생하면 콘솔 메시지와 오류가 발생한 파일 및 줄 번호를 먼저 확인하고, 데이터 전달 과정부터 점검해야겠다.
+```
